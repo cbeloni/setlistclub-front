@@ -1,0 +1,7 @@
+/**
+ * Tipos de referência do domínio (JSDoc) para IDE autocomplete.
+ */
+
+/** @typedef {{ id: number, title: string, artist: string, content: string, youtube_url?: string }} ChordSheet */
+/** @typedef {{ id: number, position: number, chord_sheet_id: number }} SetlistItem */
+/** @typedef {{ id: number, name: string, description?: string, items: SetlistItem[] }} Setlist */
