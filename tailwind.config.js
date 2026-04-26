@@ -3,33 +3,18 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
-      colors: {
-        green: {
-          50:  "#f0faf4",
-          100: "#d6f5e3",
-          200: "#aeebc8",
-          300: "#75d9a3",
-          400: "#3ec47c",
-          500: "#1eaa60",
-          600: "#158a4c",
-          700: "#116e3d",
-          800: "#0e5631",
-          900: "#0a3d23",
-          950: "#051f12",
-        },
-      },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 4px 24px -4px rgba(10, 61, 35, 0.18)",
-        glow: "0 0 24px 0px rgba(30, 170, 96, 0.25)",
+        card: "0 10px 30px -18px rgba(15, 23, 42, 0.35)",
+        glow: "0 8px 24px -16px rgba(37, 99, 235, 0.45)",
       },
       backgroundImage: {
         "hero-gradient":
-          "linear-gradient(135deg, #051f12 0%, #0a3d23 40%, #0e5631 100%)",
+          "linear-gradient(135deg, #ffffff 0%, #f8fafc 45%, #eef2ff 100%)",
         "card-gradient":
-          "linear-gradient(135deg, rgba(21,138,76,0.12) 0%, rgba(14,86,49,0.06) 100%)",
+          "linear-gradient(135deg, rgba(248,250,252,0.95) 0%, rgba(241,245,249,0.92) 100%)",
       },
       keyframes: {
         "fade-in": {

@@ -41,8 +41,8 @@ export default function AutoScrollControls() {
       </button>
 
       {/* Speed slider */}
-      <label className="flex flex-1 min-w-56 items-center gap-4 text-sm font-medium text-green-300">
-        <span className="shrink-0 text-xs text-green-400/70 uppercase tracking-widest">
+      <label className="flex flex-1 min-w-56 items-center gap-4 text-sm font-medium text-slate-700">
+        <span className="shrink-0 text-xs text-slate-500 uppercase tracking-widest">
           Velocidade
         </span>
         <div className="relative flex-1">
@@ -53,10 +53,10 @@ export default function AutoScrollControls() {
             step="0.5"
             value={speed}
             onChange={(e) => setSpeed(Number(e.target.value))}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-green-800 accent-green-500"
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-blue-600"
           />
         </div>
-        <span className="w-12 shrink-0 rounded-full border border-green-700/40 bg-green-900/60 px-2 py-0.5 text-center text-xs font-bold text-green-400">
+        <span className="w-12 shrink-0 rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-center text-xs font-bold text-slate-700">
           {speed.toFixed(1)}×
         </span>
       </label>

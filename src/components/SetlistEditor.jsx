@@ -31,31 +31,31 @@ function SortableItem({ item, index }) {
       style={style}
       className={`group flex cursor-grab items-center gap-4 rounded-xl border px-4 py-3.5 transition-all duration-150 ${
         isDragging
-          ? "border-green-500/50 bg-green-800/60 shadow-glow scale-[1.01]"
-          : "border-green-700/30 bg-green-900/40 hover:border-green-600/40 hover:bg-green-800/40"
+          ? "border-blue-200 bg-blue-50 shadow-glow scale-[1.01]"
+          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
       }`}
       {...attributes}
       {...listeners}
     >
       {/* Drag handle */}
       <span className="flex flex-col gap-0.5 opacity-40 group-hover:opacity-70 transition-opacity shrink-0">
-        <span className="block h-0.5 w-4 rounded bg-green-400" />
-        <span className="block h-0.5 w-4 rounded bg-green-400" />
-        <span className="block h-0.5 w-4 rounded bg-green-400" />
+        <span className="block h-0.5 w-4 rounded bg-slate-400" />
+        <span className="block h-0.5 w-4 rounded bg-slate-400" />
+        <span className="block h-0.5 w-4 rounded bg-slate-400" />
       </span>
 
       {/* Position badge */}
-      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500/20 text-xs font-bold text-green-400 border border-green-500/20">
+      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600 border border-slate-200">
         {index + 1}
       </span>
 
       {/* Title */}
-      <strong className="flex-1 text-sm font-semibold text-green-100">
+      <strong className="flex-1 text-sm font-semibold text-slate-800">
         {item.title || `Cifra #${item.chord_sheet_id}`}
       </strong>
 
       {/* Chord ref */}
-      <span className="text-[10px] text-green-500/50 font-mono shrink-0">
+      <span className="text-[10px] text-slate-400 font-mono shrink-0">
         #{item.chord_sheet_id}
       </span>
     </li>
@@ -85,8 +85,8 @@ export default function SetlistEditor({ initialItems = [], onSave }) {
     <section className="panel p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-green-50">Reordenar músicas</h2>
-          <p className="mt-0.5 text-sm text-green-300/60">
+          <h2 className="text-xl font-bold text-slate-900">Reordenar músicas</h2>
+          <p className="mt-0.5 text-sm text-slate-600">
             Arraste e solte para organizar o repertório.
           </p>
         </div>
@@ -107,8 +107,8 @@ export default function SetlistEditor({ initialItems = [], onSave }) {
         </SortableContext>
       </DndContext>
 
-      <div className="pt-2 border-t border-green-700/20 flex items-center justify-between gap-4">
-        <p className="text-xs text-green-500/50">
+      <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-4">
+        <p className="text-xs text-slate-500">
           Após reordenar, clique em salvar para confirmar.
         </p>
         <button

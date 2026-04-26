@@ -37,17 +37,17 @@ export default function HomePage() {
   return (
     <section className="space-y-10 animate-fade-in">
       {/* ── Hero banner ── */}
-      <div className="relative overflow-hidden rounded-3xl border border-green-700/30 bg-gradient-to-br from-green-900/70 via-green-800/50 to-green-950/80 p-8 md:p-12 shadow-card">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 p-8 md:p-12 shadow-card">
         {/* decorative blobs */}
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-green-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-12 left-0 h-48 w-48 rounded-full bg-green-400/8 blur-2xl" />
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-12 left-0 h-48 w-48 rounded-full bg-slate-400/12 blur-2xl" />
 
         <span className="label-section">Comunidade</span>
-        <h2 className="mt-3 text-4xl font-black text-green-50 leading-tight max-w-lg">
+        <h2 className="mt-3 text-4xl font-black text-slate-900 leading-tight max-w-lg">
           Organize seu repertório<br />
-          <span className="text-green-400">com simplicidade</span>
+          <span className="text-blue-600">com simplicidade</span>
         </h2>
-        <p className="mt-4 max-w-xl text-sm leading-relaxed text-green-300/80">
+        <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
           Explore setlists públicos, abra qualquer repertório e organize as
           cifras com drag&#8202;&amp;&#8202;drop. Tudo em um só lugar.
         </p>
@@ -63,7 +63,7 @@ export default function HomePage() {
       <div className="flex items-center justify-between">
         <div>
           <span className="label-section">Setlists</span>
-          <h3 className="mt-1 text-2xl font-bold text-green-50">
+          <h3 className="mt-1 text-2xl font-bold text-slate-900">
             Principais setlists
           </h3>
         </div>

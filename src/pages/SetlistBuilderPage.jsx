@@ -43,10 +43,10 @@ export default function SetlistBuilderPage() {
     <section className="space-y-6 animate-fade-in">
       {/* ── Header ── */}
       <header className="panel p-8 relative overflow-hidden">
-        <div className="pointer-events-none absolute -left-8 -bottom-8 h-40 w-40 rounded-full bg-green-500/8 blur-2xl" />
+        <div className="pointer-events-none absolute -left-8 -bottom-8 h-40 w-40 rounded-full bg-blue-500/10 blur-2xl" />
         <span className="label-section">Editor de Setlist</span>
-        <h2 className="mt-3 text-4xl font-black text-green-50">{setlist.name}</h2>
-        <p className="mt-2 text-sm text-green-300/70">
+        <h2 className="mt-3 text-4xl font-black text-slate-900">{setlist.name}</h2>
+        <p className="mt-2 text-sm text-slate-600">
           Arraste as músicas para definir a ordem do repertório.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -60,14 +60,14 @@ export default function SetlistBuilderPage() {
         <div
           className={`flex items-center gap-3 rounded-xl border px-5 py-3.5 text-sm font-semibold animate-slide-in transition-all ${
             status === "saving"
-              ? "border-green-600/40 bg-green-900/40 text-green-300"
+              ? "border-slate-300 bg-slate-100 text-slate-700"
               : status === "success"
-              ? "border-green-500/50 bg-green-500/15 text-green-300"
-              : "border-red-500/40 bg-red-900/20 text-red-300"
+              ? "border-blue-200 bg-blue-50 text-blue-700"
+              : "border-red-200 bg-red-50 text-red-700"
           }`}
         >
           {status === "saving" && (
-            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-green-400 border-t-transparent" />
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
           )}
           {status === "saving"
             ? "Salvando ordem..."

@@ -7,18 +7,18 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ── Header ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-20 border-b border-green-700/30 bg-green-950/80 backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-8">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-500 shadow-glow text-green-950 font-black text-lg transition-transform duration-200 group-hover:scale-105">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 shadow-glow text-white font-black text-lg transition-transform duration-200 group-hover:scale-105">
               ♪
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-green-400">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">
                 Gestão de Repertório
               </p>
-              <h1 className="text-xl font-black text-green-50 leading-none">
+              <h1 className="text-xl font-black text-slate-900 leading-none">
                 Setlist Club
               </h1>
             </div>
@@ -46,7 +46,7 @@ export default function App() {
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer className="border-t border-green-800/40 py-6 text-center text-xs text-green-600">
+      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500">
         © {new Date().getFullYear()} Setlist Club — Gestão de repertório para músicos
       </footer>
     </div>

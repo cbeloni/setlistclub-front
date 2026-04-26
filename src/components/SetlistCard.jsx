@@ -5,7 +5,7 @@ export default function SetlistCard({ setlist, style }) {
 
   return (
     <article
-      className="panel group flex flex-col gap-4 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-glow hover:border-green-500/40 animate-fade-in"
+      className="panel group flex flex-col gap-4 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-glow hover:border-slate-300 animate-fade-in"
       style={style}
     >
       {/* Top row */}
@@ -16,10 +16,10 @@ export default function SetlistCard({ setlist, style }) {
 
       {/* Name */}
       <div>
-        <h3 className="text-xl font-bold text-green-50 group-hover:text-green-300 transition-colors duration-200">
+        <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors duration-200">
           {setlist.name}
         </h3>
-        <p className="mt-1.5 min-h-10 text-sm leading-relaxed text-green-300/70">
+        <p className="mt-1.5 min-h-10 text-sm leading-relaxed text-slate-600">
           {setlist.description || "Sem descrição"}
         </p>
       </div>
@@ -30,18 +30,18 @@ export default function SetlistCard({ setlist, style }) {
           {Array.from({ length: Math.min(count, 6) }).map((_, i) => (
             <span
               key={i}
-              className="h-1.5 w-1.5 rounded-full bg-green-500/60"
+              className="h-1.5 w-1.5 rounded-full bg-blue-500/70"
               style={{ opacity: 1 - i * 0.12 }}
             />
           ))}
           {count > 6 && (
-            <span className="text-[10px] text-green-500/60 font-semibold ml-1">+{count - 6}</span>
+            <span className="text-[10px] text-slate-500 font-semibold ml-1">+{count - 6}</span>
           )}
         </div>
       )}
 
       {/* CTA */}
-      <div className="mt-auto pt-2 border-t border-green-700/20 flex items-center justify-between">
+      <div className="mt-auto pt-2 border-t border-slate-200 flex items-center justify-between">
         <Link
           to={`/setlists/${setlist.id}/edit`}
           className="btn-outline text-xs px-4 py-2"
@@ -50,7 +50,7 @@ export default function SetlistCard({ setlist, style }) {
         </Link>
         <Link
           to={`/cifras/1`}
-          className="text-xs text-green-500/70 hover:text-green-400 transition-colors"
+          className="text-xs text-slate-600 hover:text-blue-700 transition-colors"
         >
           Ver cifras
         </Link>
