@@ -17,5 +17,6 @@ spec:
       containers:
         - image: cbeloni/setlistclub-front:amd64
           name: setlistclub-front
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
