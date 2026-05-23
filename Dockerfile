@@ -1,25 +1,23 @@
-FROM alpine:3.18
-
-RUN apk update && apk upgrade && \
-    apk add --no-cache \
-    ca-certificates \
-    nodejs \
-    npm \
-    yarn \
-    nginx
+# Estágio 1: Construir a aplicação React
+FROM node:20-alpine AS build
 
 WORKDIR /app
-COPY . .
+
+COPY package.json package-lock.json* ./
 
 RUN yarn config set network-timeout 1000000 \
     && yarn config set network-concurrency 50
 RUN yarn install
-RUN yarn run build
+
+COPY . .
+RUN yarn build
+
+# Estágio 2: Servir a aplicação com Nginx
+FROM nginx:1.27-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-RUN mkdir -p /usr/share/nginx/html
-RUN cp -r dist/* /usr/share/nginx/html/
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 3000
+
 CMD ["nginx", "-g", "daemon off;"]
