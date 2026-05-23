@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
-export default function SetlistCard({ setlist, style }) {
+export default function SetlistCard({ setlist, style, onDelete }) {
+  const { isAuthenticated, user } = useAuth();
   const count = setlist.items?.length || 0;
+  const isOwner = isAuthenticated && user && setlist.created_by_id === user.id;
+
+  // Encontra a primeira música para poder navegar direto se houver, ou cifra #1
+  const firstSongId = setlist.items?.[0]?.chord_sheet_id || 1;
 
   return (
     <article
@@ -11,7 +17,14 @@ export default function SetlistCard({ setlist, style }) {
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
         <span className="label-section">Setlist</span>
-        <span className="badge">{count} {count === 1 ? "música" : "músicas"}</span>
+        <div className="flex items-center gap-2">
+          {isOwner && (
+            <span className="text-[9px] uppercase font-bold tracking-widest text-blue-600 bg-blue-50 border border-blue-100 rounded-md px-1.5 py-0.5">
+              Seu Set
+            </span>
+          )}
+          <span className="badge">{count} {count === 1 ? "música" : "músicas"}</span>
+        </div>
       </div>
 
       {/* Name */}
@@ -19,7 +32,7 @@ export default function SetlistCard({ setlist, style }) {
         <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors duration-200">
           {setlist.name}
         </h3>
-        <p className="mt-1.5 min-h-10 text-sm leading-relaxed text-slate-600">
+        <p className="mt-1.5 min-h-10 text-sm leading-relaxed text-slate-600 line-clamp-2">
           {setlist.description || "Sem descrição"}
         </p>
       </div>
@@ -41,19 +54,33 @@ export default function SetlistCard({ setlist, style }) {
       )}
 
       {/* CTA */}
-      <div className="mt-auto pt-2 border-t border-slate-200 flex items-center justify-between">
-        <Link
-          to={`/setlists/${setlist.id}/edit`}
-          className="btn-outline text-xs px-4 py-2"
-        >
-          Abrir editor →
-        </Link>
-        <Link
-          to={`/cifras/1`}
-          className="text-xs text-slate-600 hover:text-blue-700 transition-colors"
-        >
-          Ver cifras
-        </Link>
+      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <div className="flex gap-2">
+          <Link
+            to={`/setlists/${setlist.id}/edit`}
+            className="btn-outline text-xs px-4 py-2"
+          >
+            {isOwner ? "Editar →" : "Ver Setlist →"}
+          </Link>
+          {count > 0 && (
+            <Link
+              to={`/cifras/${firstSongId}`}
+              className="text-xs font-semibold text-slate-600 hover:text-blue-700 transition-colors p-2"
+            >
+              Tocar Cifras
+            </Link>
+          )}
+        </div>
+
+        {isOwner && onDelete && (
+          <button
+            onClick={() => onDelete(setlist.id)}
+            className="text-xs text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+            title="Excluir setlist"
+          >
+            🗑️
+          </button>
+        )}
       </div>
     </article>
   );

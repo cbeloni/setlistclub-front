@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import AutoScrollControls from "../components/AutoScrollControls";
 import YouTubePlayer from "../components/YouTubePlayer";
 import { fetchChordSheet } from "../services/api";
+import { useAuth } from "../components/AuthContext";
 
 const mockChord = {
   id: 1,
@@ -37,7 +38,10 @@ Let me walk upon the waters wherever you would call me`,
 
 export default function ChordSheetPage() {
   const { id } = useParams();
+  const { isAuthenticated, user } = useAuth();
   const [chordSheet, setChordSheet] = useState(mockChord);
+
+  const isOwner = isAuthenticated && user && chordSheet && chordSheet.created_by_id === user.id;
 
   useEffect(() => {
     if (!id) return;
@@ -51,11 +55,23 @@ export default function ChordSheetPage() {
       {/* ── Header ── */}
       <header className="relative overflow-hidden panel p-8">
         <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-blue-500/10 blur-2xl" />
-        <span className="label-section">Cifra Pública</span>
-        <h2 className="mt-3 text-4xl font-black text-slate-900">{chordSheet.title}</h2>
-        <p className="mt-1 text-base font-medium text-slate-600">{chordSheet.artist}</p>
+        <div className="flex justify-between items-start flex-wrap gap-4">
+          <div>
+            <span className="label-section">Cifra Pública</span>
+            <h2 className="mt-3 text-4xl font-black text-slate-900">{chordSheet.title}</h2>
+            <p className="mt-1 text-base font-medium text-slate-600">{chordSheet.artist}</p>
+          </div>
+          {isOwner && (
+            <Link
+              to={`/cifras/${chordSheet.id}/editar`}
+              className="btn-outline text-xs px-4 py-2"
+            >
+              ✏️ Editar Cifra
+            </Link>
+          )}
+        </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap gap-2">
           <span className="badge">🎸 Acordes</span>
           <span className="badge">📺 YouTube</span>
           <span className="badge">⬇️ Auto-scroll</span>
