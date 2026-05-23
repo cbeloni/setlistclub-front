@@ -18,4 +18,4 @@ spec:
         - image: cbeloni/setlistclub-front:amd64
           name: setlistclub-front
           ports:
-            - containerPort: 80
+            - containerPort: 8080
