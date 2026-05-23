@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: setlistclub-front
+  name: setlistclub-front
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: setlistclub-front
+  template:
+    metadata:
+      labels:
+        app: setlistclub-front
+    spec:
+      containers:
+        - image: cbeloni/setlistclub-front:arm64
+          name: setlistclub-front
+          ports:
+            - containerPort: 3000
