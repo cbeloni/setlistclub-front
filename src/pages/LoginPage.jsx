@@ -41,23 +41,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleTestLogin = async () => {
-    setEmail("teste@teste.com");
-    setPassword("123");
-    setError("");
-    setLoading(true);
-    try {
-      await login("teste@teste.com", "123");
-      navigate("/");
-    } catch (err) {
-      setError(
-        err.response?.data?.detail || "Erro ao fazer login com usuário de teste."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="mx-auto max-w-md w-full animate-fade-in py-8">
       <div className="panel p-8 relative overflow-hidden bg-gradient-to-b from-white to-slate-50/50">
@@ -123,14 +106,6 @@ export default function LoginPage() {
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={handleTestLogin}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-blue-300 bg-blue-50/30 px-4 py-3 text-sm font-bold text-blue-700 shadow-sm transition-all duration-200 hover:bg-blue-50/80 hover:border-blue-400 hover:text-blue-800 hover:-translate-y-0.5 active:translate-y-0 active:shadow-none"
-          >
-            ⚡ Acesso Rápido (Usuário de Teste)
-          </button>
         </form>
 
         <div className="relative my-6 text-center">
