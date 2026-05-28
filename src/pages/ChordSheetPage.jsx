@@ -73,7 +73,7 @@ export default function ChordSheetPage() {
     : null;
 
   return (
-    <article className="space-y-6 animate-fade-in">
+    <article className="space-y-6 animate-fade-in pb-32">
       {/* ── Header ── */}
       <header className="relative overflow-hidden panel p-8">
         <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-blue-500/10 blur-2xl" />

@@ -1,9 +1,42 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function AutoScrollControls() {
   const [isRunning, setIsRunning] = useState(false);
   const [speed, setSpeed] = useState(1);
   const rafRef = useRef(null);
+  const lastManualScrollRef = useRef(0);
+
+  useEffect(() => {
+    const markManualScroll = () => {
+      lastManualScrollRef.current = performance.now();
+    };
+
+    const keyHandler = (event) => {
+      const manualScrollKeys = [
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+        " ",
+      ];
+      if (manualScrollKeys.includes(event.key)) {
+        markManualScroll();
+      }
+    };
+
+    window.addEventListener("wheel", markManualScroll, { passive: true });
+    window.addEventListener("touchmove", markManualScroll, { passive: true });
+    window.addEventListener("keydown", keyHandler);
+
+    return () => {
+      window.removeEventListener("wheel", markManualScroll);
+      window.removeEventListener("touchmove", markManualScroll);
+      window.removeEventListener("keydown", keyHandler);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isRunning) {
@@ -15,7 +48,12 @@ export default function AutoScrollControls() {
     const step = (now) => {
       const delta = now - last;
       last = now;
-      window.scrollBy({ top: (speed * delta) / 16, behavior: "auto" });
+      const elapsedSinceManual = now - lastManualScrollRef.current;
+      const manualPriorityWindowMs = 1200;
+
+      if (elapsedSinceManual > manualPriorityWindowMs) {
+        window.scrollBy({ top: (speed * delta) / 16, behavior: "auto" });
+      }
       rafRef.current = requestAnimationFrame(step);
     };
 
@@ -25,9 +63,8 @@ export default function AutoScrollControls() {
     };
   }, [isRunning, speed]);
 
-  return (
-    <div className="panel flex flex-wrap items-center gap-5 p-5">
-      {/* Toggle button */}
+  const controlsContent = (
+    <div className="panel flex flex-wrap items-center gap-5 p-4">
       <button
         onClick={() => setIsRunning((v) => !v)}
         className={`btn-primary shrink-0 ${isRunning ? "bg-red-500 hover:bg-red-400 shadow-none" : ""}`}
@@ -40,7 +77,6 @@ export default function AutoScrollControls() {
         {isRunning ? "Parar Auto-scroll" : "Iniciar Auto-scroll"}
       </button>
 
-      {/* Speed slider */}
       <label className="flex flex-1 min-w-56 items-center gap-4 text-sm font-medium text-slate-700">
         <span className="shrink-0 text-xs text-slate-500 uppercase tracking-widest">
           Velocidade
@@ -62,4 +98,15 @@ export default function AutoScrollControls() {
       </label>
     </div>
   );
+
+  if (isRunning && typeof document !== "undefined") {
+    return createPortal(
+      <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6">
+        <div className="mx-auto w-full max-w-6xl shadow-2xl">{controlsContent}</div>
+      </div>,
+      document.body
+    );
+  }
+
+  return controlsContent;
 }
