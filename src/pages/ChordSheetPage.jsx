@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import AutoScrollControls from "../components/AutoScrollControls";
 import YouTubePlayer from "../components/YouTubePlayer";
 import { fetchChordSheet } from "../services/api";
@@ -38,6 +38,7 @@ Let me walk upon the waters wherever you would call me`,
 
 export default function ChordSheetPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, user } = useAuth();
   const [chordSheet, setChordSheet] = useState(mockChord);
 
@@ -49,6 +50,27 @@ export default function ChordSheetPage() {
       .then((data) => setChordSheet(data))
       .catch(() => setChordSheet(mockChord));
   }, [id]);
+
+  const setlistId = searchParams.get("setlistId");
+  const currentIndex = Number(searchParams.get("currentIndex") || 0);
+  const songIds = (searchParams.get("songIds") || "")
+    .split(",")
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  const hasNextSong = songIds.length > 0 && currentIndex < songIds.length - 1;
+  const hasPreviousSong = songIds.length > 0 && currentIndex > 0;
+  const previousSongId = hasPreviousSong ? songIds[currentIndex - 1] : null;
+  const nextSongId = hasNextSong ? songIds[currentIndex + 1] : null;
+  const previousSongHref = hasPreviousSong
+    ? `/cifras/${previousSongId}?setlistId=${setlistId || ""}&songIds=${songIds.join(",")}&currentIndex=${
+        currentIndex - 1
+      }`
+    : null;
+  const nextSongHref = hasNextSong
+    ? `/cifras/${nextSongId}?setlistId=${setlistId || ""}&songIds=${songIds.join(",")}&currentIndex=${
+        currentIndex + 1
+      }`
+    : null;
 
   return (
     <article className="space-y-6 animate-fade-in">
@@ -75,6 +97,16 @@ export default function ChordSheetPage() {
           <span className="badge">🎸 Acordes</span>
           <span className="badge">📺 YouTube</span>
           <span className="badge">⬇️ Auto-scroll</span>
+          {hasPreviousSong && previousSongHref && (
+            <Link to={previousSongHref} className="btn-outline text-xs px-3 py-1.5">
+              ← Música anterior
+            </Link>
+          )}
+          {hasNextSong && nextSongHref && (
+            <Link to={nextSongHref} className="btn-outline text-xs px-3 py-1.5">
+              Próxima música →
+            </Link>
+          )}
         </div>
       </header>
 
@@ -92,6 +124,20 @@ export default function ChordSheetPage() {
         <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-sm leading-8 text-slate-800">
           {chordSheet.content}
         </pre>
+        {(hasPreviousSong || hasNextSong) && (
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+            {hasPreviousSong && previousSongHref && (
+              <Link to={previousSongHref} className="btn-outline text-xs px-3 py-1.5">
+                ← Música anterior
+              </Link>
+            )}
+            {hasNextSong && nextSongHref && (
+              <Link to={nextSongHref} className="btn-outline text-xs px-3 py-1.5">
+                Próxima música →
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );

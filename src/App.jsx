@@ -38,6 +38,9 @@ function MainAppContent() {
               <Link className="btn-ghost" to="/">
                 Home
               </Link>
+              <Link className="btn-ghost" to="/setlists">
+                Setlists
+              </Link>
               <Link className="btn-ghost" to="/cifras">
                 Cifras
               </Link>
@@ -88,6 +91,7 @@ function MainAppContent() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 md:px-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/setlists" element={<HomePage />} />
           <Route path="/cifras" element={<ChordSheetListPage />} />
           <Route path="/cifras/nova" element={<ChordSheetFormPage />} />
           <Route path="/cifras/:id" element={<ChordSheetPage />} />

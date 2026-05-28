@@ -8,6 +8,11 @@ export default function SetlistCard({ setlist, style, onDelete }) {
 
   // Encontra a primeira música para poder navegar direto se houver, ou cifra #1
   const firstSongId = setlist.items?.[0]?.chord_sheet_id || 1;
+  const songIds = (setlist.items || []).map((item) => item.chord_sheet_id).filter(Boolean);
+  const playHref =
+    count > 0
+      ? `/cifras/${firstSongId}?setlistId=${setlist.id}&songIds=${songIds.join(",")}&currentIndex=0`
+      : `/cifras/${firstSongId}`;
 
   return (
     <article
@@ -64,7 +69,7 @@ export default function SetlistCard({ setlist, style, onDelete }) {
           </Link>
           {count > 0 && (
             <Link
-              to={`/cifras/${firstSongId}`}
+              to={playHref}
               className="text-xs font-semibold text-slate-600 hover:text-blue-700 transition-colors p-2"
             >
               Tocar Cifras
