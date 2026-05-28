@@ -6,6 +6,7 @@ export default function AutoScrollControls() {
   const [speed, setSpeed] = useState(1);
   const rafRef = useRef(null);
   const lastManualScrollRef = useRef(0);
+  const scrollRemainderRef = useRef(0);
 
   useEffect(() => {
     const markManualScroll = () => {
@@ -41,6 +42,7 @@ export default function AutoScrollControls() {
   useEffect(() => {
     if (!isRunning) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      scrollRemainderRef.current = 0;
       return;
     }
 
@@ -52,7 +54,14 @@ export default function AutoScrollControls() {
       const manualPriorityWindowMs = 1200;
 
       if (elapsedSinceManual > manualPriorityWindowMs) {
-        window.scrollBy({ top: (speed * delta) / 16, behavior: "auto" });
+        // Keep fractional movement so very low speeds still advance smoothly.
+        const nextDelta = (speed * delta) / 32 + scrollRemainderRef.current;
+        const wholePixels = Math.trunc(nextDelta);
+        scrollRemainderRef.current = nextDelta - wholePixels;
+
+        if (wholePixels !== 0) {
+          window.scrollBy({ top: wholePixels, behavior: "auto" });
+        }
       }
       rafRef.current = requestAnimationFrame(step);
     };
@@ -84,9 +93,9 @@ export default function AutoScrollControls() {
         <div className="relative flex-1">
           <input
             type="range"
-            min="0.5"
-            max="6"
-            step="0.5"
+            min="0.2"
+            max="1.8"
+            step="0.1"
             value={speed}
             onChange={(e) => setSpeed(Number(e.target.value))}
             className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-blue-600"
