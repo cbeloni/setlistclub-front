@@ -120,10 +120,27 @@ export default function AutoScrollControls() {
         handleInteraction(e.touches[0].clientY);
       }
     };
+    const onKeyDown = (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setSpeed((prev) => Math.max(0.2, Number((prev - 0.1).toFixed(1))));
+        setAreBarsHidden(false);
+        handleInteraction(window.innerHeight / 2);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setSpeed((prev) => Math.min(1.8, Number((prev + 0.1).toFixed(1))));
+        setAreBarsHidden(false);
+        handleInteraction(window.innerHeight / 2);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setIsRunning(false);
+      }
+    };
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("keydown", onKeyDown);
 
     return () => {
       if (hideTimeoutRef.current) {
@@ -132,6 +149,7 @@ export default function AutoScrollControls() {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, [isRunning]);
 
