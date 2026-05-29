@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import AutoScrollControls from "../components/AutoScrollControls";
 import YouTubePlayer from "../components/YouTubePlayer";
-import { fetchChordSheet } from "../services/api";
+import { fetchChordSheet, updateChordSheetScrollSpeed } from "../services/api";
 import { useAuth } from "../components/AuthContext";
 
 const mockChord = {
@@ -41,15 +41,65 @@ export default function ChordSheetPage() {
   const [searchParams] = useSearchParams();
   const { isAuthenticated, user } = useAuth();
   const [chordSheet, setChordSheet] = useState(mockChord);
+  const [currentScrollSpeed, setCurrentScrollSpeed] = useState(1);
+  const [savedScrollSpeed, setSavedScrollSpeed] = useState(1);
+  const saveTimeoutRef = useRef(null);
+  const lastScheduledSpeedRef = useRef(1);
 
   const isOwner = isAuthenticated && user && chordSheet && chordSheet.created_by_id === user.id;
 
   useEffect(() => {
     if (!id) return;
     fetchChordSheet(id)
-      .then((data) => setChordSheet(data))
+      .then((data) => {
+        setChordSheet(data);
+        const normalized = Number(
+          Math.min(1.8, Math.max(0.2, Number(data?.scroll_speed ?? 1))).toFixed(1)
+        );
+        setCurrentScrollSpeed(normalized);
+        setSavedScrollSpeed(normalized);
+      })
       .catch(() => setChordSheet(mockChord));
   }, [id]);
+
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [chordSheet.id]);
+
+  useEffect(() => {
+    if (!id || !isOwner) return;
+    if (currentScrollSpeed === savedScrollSpeed) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    lastScheduledSpeedRef.current = currentScrollSpeed;
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (lastScheduledSpeedRef.current === savedScrollSpeed) return;
+      try {
+        await updateChordSheetScrollSpeed(id, lastScheduledSpeedRef.current);
+        setSavedScrollSpeed(lastScheduledSpeedRef.current);
+        setChordSheet((prev) => ({ ...prev, scroll_speed: lastScheduledSpeedRef.current }));
+      } catch {
+        // Silent fail to avoid disrupting playback interaction.
+      }
+    }, 60000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [currentScrollSpeed, id, isOwner, savedScrollSpeed]);
 
   const setlistId = searchParams.get("setlistId");
   const currentIndex = Number(searchParams.get("currentIndex") || 0);
@@ -112,7 +162,7 @@ export default function ChordSheetPage() {
 
       {/* ── Controls & Player ── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <AutoScrollControls />
+        <AutoScrollControls initialSpeed={currentScrollSpeed} onSpeedChange={setCurrentScrollSpeed} />
         <YouTubePlayer url={chordSheet.youtube_url} />
       </div>
 

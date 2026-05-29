@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-export default function AutoScrollControls() {
+export default function AutoScrollControls({ initialSpeed = 1, onSpeedChange }) {
   const [isRunning, setIsRunning] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(initialSpeed);
   const rafRef = useRef(null);
   const lastManualScrollRef = useRef(0);
   const scrollRemainderRef = useRef(0);
@@ -11,20 +11,23 @@ export default function AutoScrollControls() {
   const hideTimeoutRef = useRef(null);
 
   useEffect(() => {
+    const clampedInitialSpeed = Math.min(1.8, Math.max(0.2, Number(initialSpeed) || 1));
+    setSpeed(Number(clampedInitialSpeed.toFixed(1)));
+  }, [initialSpeed]);
+
+  useEffect(() => {
+    if (typeof onSpeedChange === "function") {
+      onSpeedChange(speed);
+    }
+  }, [onSpeedChange, speed]);
+
+  useEffect(() => {
     const markManualScroll = () => {
       lastManualScrollRef.current = performance.now();
     };
 
     const keyHandler = (event) => {
-      const manualScrollKeys = [
-        "ArrowUp",
-        "ArrowDown",
-        "PageUp",
-        "PageDown",
-        "Home",
-        "End",
-        " ",
-      ];
+      const manualScrollKeys = ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "];
       if (manualScrollKeys.includes(event.key)) {
         markManualScroll();
       }
@@ -56,7 +59,6 @@ export default function AutoScrollControls() {
       const manualPriorityWindowMs = 1200;
 
       if (elapsedSinceManual > manualPriorityWindowMs) {
-        // Keep fractional movement so very low speeds still advance smoothly.
         const nextDelta = (speed * delta) / 32 + scrollRemainderRef.current;
         const wholePixels = Math.trunc(nextDelta);
         scrollRemainderRef.current = nextDelta - wholePixels;
@@ -84,7 +86,6 @@ export default function AutoScrollControls() {
       return;
     }
 
-    // Schedule initial auto-hide after 2 seconds
     hideTimeoutRef.current = setTimeout(() => {
       setAreBarsHidden(true);
     }, 2000);
@@ -191,9 +192,7 @@ export default function AutoScrollControls() {
       </button>
 
       <label className="flex flex-1 min-w-56 items-center gap-4 text-sm font-medium text-slate-700">
-        <span className="shrink-0 text-xs text-slate-500 uppercase tracking-widest">
-          Velocidade
-        </span>
+        <span className="shrink-0 text-xs text-slate-500 uppercase tracking-widest">Velocidade</span>
         <div className="relative flex-1">
           <input
             type="range"
@@ -214,7 +213,10 @@ export default function AutoScrollControls() {
 
   if (isRunning && typeof document !== "undefined") {
     return createPortal(
-      <div id="autoscroll-panel" className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6">
+      <div
+        id="autoscroll-panel"
+        className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6"
+      >
         <div className="mx-auto w-full max-w-6xl shadow-2xl">{controlsContent}</div>
       </div>,
       document.body

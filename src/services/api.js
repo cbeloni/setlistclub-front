@@ -13,11 +13,27 @@ export function setAuthHeader(token) {
   }
 }
 
+let unauthorizedHandler = null;
+
+export function setUnauthorizedHandler(handler) {
+  unauthorizedHandler = typeof handler === "function" ? handler : null;
+}
+
 // Inicializa o header caso já exista o token salvo no localStorage
 const savedToken = localStorage.getItem("access_token");
 if (savedToken) {
   setAuthHeader(savedToken);
 }
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401 && unauthorizedHandler) {
+      unauthorizedHandler();
+    }
+    return Promise.reject(error);
+  }
+);
 
 /* ==========================================
    AUTHENTICATION ENDPOINTS
@@ -111,24 +127,41 @@ export async function fetchChordSheet(id) {
   return data;
 }
 
-export async function createChordSheet(title, artist, keySignature, content, youtubeUrl) {
+export async function createChordSheet(title, artist, keySignature, content, youtubeUrl, scrollSpeed = 1) {
   const { data } = await api.post("/chord-sheets", {
     title,
     artist,
     key_signature: keySignature || null,
     content,
-    youtube_url: youtubeUrl || null
+    youtube_url: youtubeUrl || null,
+    scroll_speed: scrollSpeed
   });
   return data;
 }
 
-export async function updateChordSheet(id, title, artist, keySignature, content, youtubeUrl) {
+export async function updateChordSheet(
+  id,
+  title,
+  artist,
+  keySignature,
+  content,
+  youtubeUrl,
+  scrollSpeed = 1
+) {
   const { data } = await api.put(`/chord-sheets/${id}`, {
     title,
     artist,
     key_signature: keySignature || null,
     content,
-    youtube_url: youtubeUrl || null
+    youtube_url: youtubeUrl || null,
+    scroll_speed: scrollSpeed
+  });
+  return data;
+}
+
+export async function updateChordSheetScrollSpeed(id, scrollSpeed) {
+  const { data } = await api.put(`/chord-sheets/${id}/scroll-speed`, {
+    scroll_speed: scrollSpeed
   });
   return data;
 }
