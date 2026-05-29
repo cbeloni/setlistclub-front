@@ -7,6 +7,8 @@ export default function AutoScrollControls() {
   const rafRef = useRef(null);
   const lastManualScrollRef = useRef(0);
   const scrollRemainderRef = useRef(0);
+  const [areBarsHidden, setAreBarsHidden] = useState(false);
+  const hideTimeoutRef = useRef(null);
 
   useEffect(() => {
     const markManualScroll = () => {
@@ -72,6 +74,78 @@ export default function AutoScrollControls() {
     };
   }, [isRunning, speed]);
 
+  useEffect(() => {
+    if (!isRunning) {
+      setAreBarsHidden(false);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+        hideTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    // Schedule initial auto-hide after 2 seconds
+    hideTimeoutRef.current = setTimeout(() => {
+      setAreBarsHidden(true);
+    }, 2000);
+
+    const handleInteraction = (clientY) => {
+      const topThreshold = 60;
+      const bottomThreshold = window.innerHeight - 80;
+
+      if (clientY < topThreshold || clientY > bottomThreshold) {
+        setAreBarsHidden(false);
+        if (hideTimeoutRef.current) {
+          clearTimeout(hideTimeoutRef.current);
+          hideTimeoutRef.current = null;
+        }
+      } else {
+        if (hideTimeoutRef.current) {
+          clearTimeout(hideTimeoutRef.current);
+        }
+        hideTimeoutRef.current = setTimeout(() => {
+          setAreBarsHidden(true);
+        }, 2000);
+      }
+    };
+
+    const onMouseMove = (e) => handleInteraction(e.clientY);
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        handleInteraction(e.touches[0].clientY);
+      }
+    };
+    const onTouchMove = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        handleInteraction(e.touches[0].clientY);
+      }
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (areBarsHidden) {
+      document.body.classList.add("hide-bars-active");
+    } else {
+      document.body.classList.remove("hide-bars-active");
+    }
+    return () => {
+      document.body.classList.remove("hide-bars-active");
+    };
+  }, [areBarsHidden]);
+
   const controlsContent = (
     <div className="panel flex flex-wrap items-center gap-5 p-4">
       <button
@@ -110,7 +184,7 @@ export default function AutoScrollControls() {
 
   if (isRunning && typeof document !== "undefined") {
     return createPortal(
-      <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6">
+      <div id="autoscroll-panel" className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6">
         <div className="mx-auto w-full max-w-6xl shadow-2xl">{controlsContent}</div>
       </div>,
       document.body

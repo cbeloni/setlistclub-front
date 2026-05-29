@@ -15,7 +15,7 @@ function MainAppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/20">
       {/* ── Header ─────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+      <header id="main-header" className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-8">
           {/* Brand */}
           <Link to="/" className="flex items-center gap-3 group">
