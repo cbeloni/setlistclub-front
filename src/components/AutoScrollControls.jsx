@@ -89,6 +89,20 @@ export default function AutoScrollControls() {
       setAreBarsHidden(true);
     }, 2000);
 
+    const scheduleHideBars = () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      hideTimeoutRef.current = setTimeout(() => {
+        setAreBarsHidden(true);
+      }, 2000);
+    };
+
+    const showBarsTemporarily = () => {
+      setAreBarsHidden(false);
+      scheduleHideBars();
+    };
+
     const handleInteraction = (clientY) => {
       const topThreshold = 60;
       const bottomThreshold = window.innerHeight - 80;
@@ -100,12 +114,7 @@ export default function AutoScrollControls() {
           hideTimeoutRef.current = null;
         }
       } else {
-        if (hideTimeoutRef.current) {
-          clearTimeout(hideTimeoutRef.current);
-        }
-        hideTimeoutRef.current = setTimeout(() => {
-          setAreBarsHidden(true);
-        }, 2000);
+        scheduleHideBars();
       }
     };
 
@@ -120,6 +129,7 @@ export default function AutoScrollControls() {
         handleInteraction(e.touches[0].clientY);
       }
     };
+    const onClickAnywhere = () => showBarsTemporarily();
     const onKeyDown = (e) => {
       if (e.key === "ArrowLeft") {
         e.preventDefault();
@@ -140,6 +150,7 @@ export default function AutoScrollControls() {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("click", onClickAnywhere);
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
@@ -149,6 +160,7 @@ export default function AutoScrollControls() {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("click", onClickAnywhere);
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [isRunning]);
