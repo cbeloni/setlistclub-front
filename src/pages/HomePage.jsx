@@ -321,7 +321,7 @@ export default function HomePage({ mode = "home" }) {
                     </div>
                     <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
                       <Link to={`/cifras/${sheet.id}`} className="btn-primary text-xs px-4 py-2">Tocar Cifra</Link>
-                      {isOwner && (
+                      {isAuthenticated && (
                         <Link to={`/cifras/${sheet.id}/editar`} className="btn-outline text-xs px-3 py-1.5">✏️</Link>
                       )}
                     </div>

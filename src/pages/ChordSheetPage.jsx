@@ -133,7 +133,7 @@ export default function ChordSheetPage() {
             <h2 className="mt-3 text-4xl font-black text-slate-900">{chordSheet.title}</h2>
             <p className="mt-1 text-base font-medium text-slate-600">{chordSheet.artist}</p>
           </div>
-          {isOwner && (
+          {isAuthenticated && (
             <Link
               to={`/cifras/${chordSheet.id}/editar`}
               className="btn-outline text-xs px-4 py-2"

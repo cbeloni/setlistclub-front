@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import * as apiService from "../services/api";
 
 const AuthContext = createContext(null);
@@ -8,7 +8,19 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("auth_user");
+    apiService.setAuthHeader(null);
+  }, []);
+
   useEffect(() => {
+    // Registra o handler de logout para o interceptor de refresh
+    apiService.setLogoutHandler(logout);
+
     // Carrega a sessão inicial do localStorage se existir
     const savedToken = localStorage.getItem("access_token");
     const savedUser = localStorage.getItem("auth_user");
@@ -19,13 +31,14 @@ export function AuthProvider({ children }) {
       apiService.setAuthHeader(savedToken);
     }
     setLoading(false);
-  }, []);
+  }, [logout]);
 
   const handleAuthSuccess = (authData) => {
-    const { access_token, user: userData } = authData;
+    const { access_token, refresh_token, user: userData } = authData;
     setToken(access_token);
     setUser(userData);
     localStorage.setItem("access_token", access_token);
+    localStorage.setItem("refresh_token", refresh_token);
     localStorage.setItem("auth_user", JSON.stringify(userData));
     apiService.setAuthHeader(access_token);
   };
@@ -46,14 +59,6 @@ export function AuthProvider({ children }) {
     const data = await apiService.loginGoogleCallback(idToken);
     handleAuthSuccess(data);
     return data.user;
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("auth_user");
-    apiService.setAuthHeader(null);
   };
 
   return (

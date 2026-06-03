@@ -13,10 +13,24 @@ export function setAuthHeader(token) {
   }
 }
 
-let unauthorizedHandler = null;
+let onLogout = null;
 
-export function setUnauthorizedHandler(handler) {
-  unauthorizedHandler = typeof handler === "function" ? handler : null;
+export function setLogoutHandler(handler) {
+  onLogout = typeof handler === "function" ? handler : null;
+}
+
+let isRefreshing = false;
+let failedQueue = [];
+
+function processQueue(error, token = null) {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
 }
 
 // Inicializa o header caso já exista o token salvo no localStorage
@@ -27,11 +41,73 @@ if (savedToken) {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error?.response?.status === 401 && unauthorizedHandler) {
-      unauthorizedHandler();
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Só tenta refresh se for 401
+    if (error?.response?.status !== 401) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    // Evita loop infinito: se já tentou refrescar (retry) ou se é a própria req de refresh
+    if (originalRequest._retry) {
+      return Promise.reject(error);
+    }
+    if (originalRequest.url && originalRequest.url.includes("/auth/refresh")) {
+      return Promise.reject(error);
+    }
+
+    // Se já está tentando renovar, fila esta requisição
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      })
+        .then((token) => {
+          originalRequest.headers["Authorization"] = `Bearer ${token}`;
+          return api(originalRequest);
+        })
+        .catch((err) => Promise.reject(err));
+    }
+
+    isRefreshing = true;
+    originalRequest._retry = true;
+
+    try {
+      const savedRefreshToken = localStorage.getItem("refresh_token");
+      // Se não há refresh token salvo (ex: sessão antiga anterior à correção),
+      // apenas rejeita a requisição original sem deslogar abruptamente
+      if (!savedRefreshToken) {
+        return Promise.reject(error);
+      }
+
+      const { access_token, refresh_token } = await refreshToken(savedRefreshToken);
+
+      // Atualiza o access token
+      localStorage.setItem("access_token", access_token);
+      setAuthHeader(access_token);
+
+      // Atualiza o refresh token (rotação: o servidor revogou o antigo)
+      localStorage.setItem("refresh_token", refresh_token);
+
+      processQueue(null, access_token);
+      originalRequest.headers["Authorization"] = `Bearer ${access_token}`;
+      return api(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError, null);
+      // Se o refresh endpoint retornou 401, o refresh token é inválido/expirado → desloga
+      if (refreshError?.response?.status === 401) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("auth_user");
+        setAuthHeader(null);
+        if (onLogout) {
+          onLogout();
+        }
+      }
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
 
@@ -64,6 +140,13 @@ export async function fetchGoogleAuthUrl() {
 export async function loginGoogleCallback(idToken) {
   const { data } = await api.post("/auth/google/callback", {
     id_token: idToken
+  });
+  return data;
+}
+
+export async function refreshToken(refresh_token) {
+  const { data } = await api.post("/auth/refresh", {
+    refresh_token
   });
   return data;
 }

@@ -133,22 +133,24 @@ export default function ChordSheetListPage() {
                     Tocar Cifra
                   </Link>
 
-                  {isOwner && (
-                    <div className="flex gap-2">
+                  <div className="flex gap-2">
+                    {isAuthenticated && (
                       <Link
                         to={`/cifras/${sheet.id}/editar`}
                         className="btn-outline text-xs px-3 py-1.5"
                       >
                         ✏️
                       </Link>
+                    )}
+                    {isOwner && (
                       <button
                         onClick={() => handleDelete(sheet.id)}
                         className="btn-outline text-xs px-3 py-1.5 border-red-200 hover:border-red-300 text-red-500 hover:text-red-600 hover:bg-red-50"
                       >
                         🗑️
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </article>
             );
