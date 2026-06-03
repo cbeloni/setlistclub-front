@@ -1,8 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import AutoScrollControls from "../components/AutoScrollControls";
 import YouTubePlayer from "../components/YouTubePlayer";
-import { fetchChordSheet, recordChordSheetView, updateChordSheetScrollSpeed } from "../services/api";
+import {
+  fetchChordSheet,
+  fetchTabVisibility,
+  recordChordSheetView,
+  setTabVisibility,
+  updateChordSheetScrollSpeed,
+} from "../services/api";
 import { useAuth } from "../components/AuthContext";
 
 const mockChord = {
@@ -36,6 +42,14 @@ Let me walk upon the waters wherever you would call me`,
   youtube_url: "https://www.youtube.com/watch?v=dy9nwe9_xzw",
 };
 
+// Regex para identificar linhas de tablatura: começa com letra maiúscula seguida de pipe
+const TAB_LINE_REGEX = /^[A-Z]\|/;
+
+function hasTabLines(content) {
+  if (!content) return false;
+  return content.split("\n").some((line) => TAB_LINE_REGEX.test(line));
+}
+
 export default function ChordSheetPage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -43,11 +57,14 @@ export default function ChordSheetPage() {
   const [chordSheet, setChordSheet] = useState(mockChord);
   const [currentScrollSpeed, setCurrentScrollSpeed] = useState(1);
   const [savedScrollSpeed, setSavedScrollSpeed] = useState(1);
+  const [tabHidden, setTabHidden] = useState(true);
   const saveTimeoutRef = useRef(null);
   const lastScheduledSpeedRef = useRef(1);
 
   const isOwner = isAuthenticated && user && chordSheet && chordSheet.created_by_id === user.id;
+  const sheetHasTab = hasTabLines(chordSheet.content);
 
+  // Carrega a cifra e a preferência de tablatura
   useEffect(() => {
     if (!id) return;
     fetchChordSheet(id)
@@ -59,13 +76,37 @@ export default function ChordSheetPage() {
         setCurrentScrollSpeed(normalized);
         setSavedScrollSpeed(normalized);
 
-        // Registra a visualização no Redis (apenas se autenticado)
+        // Registra a visualização
         if (isAuthenticated) {
           recordChordSheetView(id).catch(() => {});
+        }
+
+        // Carrega preferência de tablatura do Redis
+        if (isAuthenticated) {
+          fetchTabVisibility(id)
+            .then((res) => {
+              // res.tab_hidden = true significa oculta (default)
+              setTabHidden(res.tab_hidden);
+            })
+            .catch(() => {});
+        } else {
+          // Usuário não logado: sempre começa oculta
+          setTabHidden(true);
         }
       })
       .catch(() => setChordSheet(mockChord));
   }, [id, isAuthenticated]);
+
+  // Persiste a preferência de tablatura no Redis quando o usuário alterna
+  const toggleTab = useCallback(() => {
+    setTabHidden((prev) => {
+      const newVal = !prev;
+      if (isAuthenticated && id) {
+        setTabVisibility(id, newVal).catch(() => {});
+      }
+      return newVal;
+    });
+  }, [isAuthenticated, id]);
 
   useEffect(() => {
     if (saveTimeoutRef.current) {
@@ -95,7 +136,7 @@ export default function ChordSheetPage() {
         setSavedScrollSpeed(lastScheduledSpeedRef.current);
         setChordSheet((prev) => ({ ...prev, scroll_speed: lastScheduledSpeedRef.current }));
       } catch {
-        // Silent fail to avoid disrupting playback interaction.
+        // Silent fail
       }
     }, 60000);
 
@@ -127,48 +168,74 @@ export default function ChordSheetPage() {
       }`
     : null;
 
+  // Renderiza o conteúdo filtrando linhas de tablatura se tabHidden for true
+  const renderContent = (content) => {
+    if (!tabHidden) {
+      return content;
+    }
+    return content
+      .split("\n")
+      .filter((line) => !TAB_LINE_REGEX.test(line))
+      .join("\n");
+  };
+
   return (
     <article className="space-y-6 animate-fade-in pb-32">
       {/* ── Header ── */}
       <header className="relative overflow-hidden panel p-8">
         <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-blue-500/10 blur-2xl" />
         <div className="flex justify-between items-start flex-wrap gap-4">
-          <div>
+          <div className="flex-1 min-w-0">
             <span className="label-section">Cifra Pública</span>
             <h2 className="mt-3 text-4xl font-black text-slate-900">{chordSheet.title}</h2>
             <p className="mt-1 text-base font-medium text-slate-600">{chordSheet.artist}</p>
+            {/* Botões abaixo do nome da música/cantor */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {isAuthenticated && (
+                <Link
+                  to={`/cifras/${chordSheet.id}/editar`}
+                  className="btn-outline text-xs px-4 py-2"
+                >
+                  ✏️ Editar Cifra
+                </Link>
+              )}
+              {sheetHasTab && (
+                <button
+                  type="button"
+                  onClick={toggleTab}
+                  className={`btn-outline text-xs px-4 py-2 ${tabHidden ? "" : "bg-blue-50 border-blue-300 text-blue-700"}`}
+                >
+                  {tabHidden ? "📄 Mostrar Tablatura" : "🎸 Ocultar Tablatura"}
+                </button>
+              )}
+            </div>
           </div>
-          {isAuthenticated && (
-            <Link
-              to={`/cifras/${chordSheet.id}/editar`}
-              className="btn-outline text-xs px-4 py-2"
-            >
-              ✏️ Editar Cifra
-            </Link>
-          )}
+          {/* YouTube Player no lugar do antigo botão "Editar Cifra" */}
+          <div className="w-full sm:w-80 lg:w-96 shrink-0">
+            <YouTubePlayer url={chordSheet.youtube_url} />
+          </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          <span className="badge">🎸 Acordes</span>
-          <span className="badge">📺 YouTube</span>
-          <span className="badge">⬇️ Auto-scroll</span>
-          {hasPreviousSong && previousSongHref && (
-            <Link to={previousSongHref} className="btn-outline text-xs px-3 py-1.5">
-              ← Música anterior
-            </Link>
-          )}
-          {hasNextSong && nextSongHref && (
-            <Link to={nextSongHref} className="btn-outline text-xs px-3 py-1.5">
-              Próxima música →
-            </Link>
-          )}
-        </div>
+        {/* Navegação entre músicas do setlist */}
+        {(hasPreviousSong || hasNextSong) && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {hasPreviousSong && previousSongHref && (
+              <Link to={previousSongHref} className="btn-outline text-xs px-3 py-1.5">
+                ← Música anterior
+              </Link>
+            )}
+            {hasNextSong && nextSongHref && (
+              <Link to={nextSongHref} className="btn-outline text-xs px-3 py-1.5">
+                Próxima música →
+              </Link>
+            )}
+          </div>
+        )}
       </header>
 
-      {/* ── Controls & Player ── */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* ── Controls ── */}
+      <div>
         <AutoScrollControls initialSpeed={currentScrollSpeed} onSpeedChange={setCurrentScrollSpeed} />
-        <YouTubePlayer url={chordSheet.youtube_url} />
       </div>
 
       {/* ── Chord content ── */}
@@ -177,7 +244,7 @@ export default function ChordSheetPage() {
           Cifra
         </h3>
         <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-sm leading-8 text-slate-800">
-          {chordSheet.content}
+          {renderContent(chordSheet.content)}
         </pre>
         {(hasPreviousSong || hasNextSong) && (
           <div className="mt-6 flex flex-wrap gap-2 border-t border-slate-100 pt-4">

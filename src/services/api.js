@@ -261,3 +261,12 @@ export async function fetchRecentlyViewedChordSheets() {
   const { data } = await api.get("/chord-sheets/recently-viewed");
   return data;
 }
+
+export async function fetchTabVisibility(id) {
+  const { data } = await api.get(`/chord-sheets/${id}/tab-visibility`);
+  return data;
+}
+
+export async function setTabVisibility(id, tabHidden) {
+  await api.put(`/chord-sheets/${id}/tab-visibility`, { tab_hidden: tabHidden });
+}
