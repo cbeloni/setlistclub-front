@@ -1,4 +1,4 @@
-import { useState } from "react";
+kilkilkiimport { useState } from "react";
 import { Link, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import ChordSheetPage from "./pages/ChordSheetPage";
@@ -22,9 +22,11 @@ function MainAppContent() {
       <header id="main-header" className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-8">
           <Link to="/" className="flex items-center gap-3 group" onClick={closeMobileMenu}>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 shadow-glow text-white font-black text-lg transition-transform duration-200 group-hover:scale-105">
-              ♪
-            </div>
+            <img
+              src="/logo.png"
+              alt="Setlist Club"
+              className="h-9 w-auto transition-transform duration-200 group-hover:scale-105"
+            />
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Gestão de Repertório</p>
               <h1 className="text-lg font-black text-slate-900 leading-none">Setlist Club</h1>
