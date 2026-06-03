@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SetlistCard from "../components/SetlistCard";
-import { fetchMainSetlists, createSetlist, deleteSetlist, fetchChordSheets } from "../services/api";
+import { fetchMainSetlists, createSetlist, deleteSetlist, fetchChordSheets, fetchRecentlyViewedChordSheets } from "../services/api";
 import { useAuth } from "../components/AuthContext";
 
 export default function HomePage({ mode = "home" }) {
@@ -9,8 +9,10 @@ export default function HomePage({ mode = "home" }) {
   const isSetlistsOnlyMode = mode === "setlists";
   const [setlists, setSetlists] = useState([]);
   const [chordSheets, setChordSheets] = useState([]);
+  const [recentSheets, setRecentSheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chordLoading, setChordLoading] = useState(true);
+  const [recentLoading, setRecentLoading] = useState(false);
   const [error, setError] = useState("");
   const [chordError, setChordError] = useState("");
 
@@ -25,7 +27,10 @@ export default function HomePage({ mode = "home" }) {
   useEffect(() => {
     loadSetlists();
     loadChordSheets();
-  }, []);
+    if (isAuthenticated) {
+      loadRecentSheets();
+    }
+  }, [isAuthenticated]);
 
   const loadSetlists = async () => {
     setLoading(true);
@@ -48,6 +53,18 @@ export default function HomePage({ mode = "home" }) {
       setChordError("Não foi possível carregar as cifras.");
     } finally {
       setChordLoading(false);
+    }
+  };
+
+  const loadRecentSheets = async () => {
+    setRecentLoading(true);
+    try {
+      const data = await fetchRecentlyViewedChordSheets();
+      setRecentSheets(data);
+    } catch {
+      // Silently fail
+    } finally {
+      setRecentLoading(false);
     }
   };
 
@@ -150,56 +167,112 @@ export default function HomePage({ mode = "home" }) {
 
   return (
     <section className="space-y-10 animate-fade-in">
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 p-8 md:p-12 shadow-card">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-12 left-0 h-48 w-48 rounded-full bg-slate-400/12 blur-2xl" />
+      {/* ── Carrossel: só aparece para usuários não logados ── */}
+      {!isAuthenticated && (
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 p-8 md:p-12 shadow-card">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 left-0 h-48 w-48 rounded-full bg-slate-400/12 blur-2xl" />
 
-        <div className="relative min-h-[260px]">
-          {visibleHeroSlides.map((slide, idx) => (
-            <div
-              key={idx}
-              className={`transition-all duration-300 ${heroSlide === idx ? "opacity-100 translate-x-0" : "pointer-events-none absolute inset-0 opacity-0 translate-x-4"}`}
-            >
-              <span className="label-section">Comunidade</span>
-              <h2 className="mt-3 text-4xl font-black text-slate-900 leading-tight max-w-lg">{slide.title}</h2>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600">{slide.description}</p>
-              <div className="mt-8 flex flex-wrap gap-4 items-center">{slide.actions}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {visibleHeroSlides.map((_, idx) => (
-              <button
+          <div className="relative min-h-[260px]">
+            {visibleHeroSlides.map((slide, idx) => (
+              <div
                 key={idx}
-                type="button"
-                onClick={() => setHeroSlide(idx)}
-                className={`h-2.5 rounded-full transition-all ${heroSlide === idx ? "w-8 bg-blue-600" : "w-2.5 bg-slate-300 hover:bg-slate-400"}`}
-                aria-label={`Ir para slide ${idx + 1}`}
-              />
+                className={`transition-all duration-300 ${heroSlide === idx ? "opacity-100 translate-x-0" : "pointer-events-none absolute inset-0 opacity-0 translate-x-4"}`}
+              >
+                <span className="label-section">Comunidade</span>
+                <h2 className="mt-3 text-4xl font-black text-slate-900 leading-tight max-w-lg">{slide.title}</h2>
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600">{slide.description}</p>
+                <div className="mt-8 flex flex-wrap gap-4 items-center">{slide.actions}</div>
+              </div>
             ))}
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                setHeroSlide((prev) => (prev === 0 ? visibleHeroSlides.length - 1 : prev - 1))
-              }
-              className="btn-outline text-xs px-3 py-1.5"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              onClick={() => setHeroSlide((prev) => (prev + 1) % visibleHeroSlides.length)}
-              className="btn-outline text-xs px-3 py-1.5"
-            >
-              →
-            </button>
+
+          <div className="mt-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {visibleHeroSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setHeroSlide(idx)}
+                  className={`h-2.5 rounded-full transition-all ${heroSlide === idx ? "w-8 bg-blue-600" : "w-2.5 bg-slate-300 hover:bg-slate-400"}`}
+                  aria-label={`Ir para slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setHeroSlide((prev) => (prev === 0 ? visibleHeroSlides.length - 1 : prev - 1))
+                }
+                className="btn-outline text-xs px-3 py-1.5"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroSlide((prev) => (prev + 1) % visibleHeroSlides.length)}
+                className="btn-outline text-xs px-3 py-1.5"
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Cifras acessadas recentemente (primeiro item quando logado) ── */}
+      {isAuthenticated && !isSetlistsOnlyMode && (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="label-section">Histórico</span>
+              <h3 className="mt-1 text-2xl font-bold text-slate-900">Continuar de onde parou</h3>
+            </div>
+            <Link to="/recentes" className="btn-outline text-xs px-4 py-2">Ver todas</Link>
+          </div>
+
+          {recentLoading ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={`r-${i}`} className="panel h-40 animate-pulse" />
+              ))}
+            </div>
+          ) : recentSheets.length === 0 ? (
+            <div className="panel p-8 text-center text-slate-500">
+              Nenhuma cifra acessada recentemente.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {recentSheets.slice(0, 6).map((sheet, idx) => {
+                const isOwner = isAuthenticated && user && user.id === sheet.created_by_id;
+                return (
+                  <article
+                    key={sheet.id}
+                    style={{ animationDelay: `${idx * 0.05}s` }}
+                    className="panel group flex flex-col justify-between p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-glow hover:border-slate-300 animate-fade-in"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="badge">{sheet.key_signature ? `Tom: ${sheet.key_signature}` : "Sem Tom"}</span>
+                        {isOwner && <span className="text-[10px] uppercase font-bold tracking-widest text-blue-600">Sua Cifra</span>}
+                      </div>
+                      <h3 className="mt-4 text-lg font-bold text-slate-900 group-hover:text-blue-700 transition-colors">{sheet.title}</h3>
+                      <p className="text-sm font-semibold text-slate-500 mt-1">{sheet.artist}</p>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <Link to={`/cifras/${sheet.id}`} className="btn-primary text-xs px-4 py-2">Tocar Cifra</Link>
+                      {isAuthenticated && (
+                        <Link to={`/cifras/${sheet.id}/editar`} className="btn-outline text-xs px-3 py-1.5">✏️</Link>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
 
       {showCreateForm && (
         <form onSubmit={handleCreateSetlist} className="panel p-6 space-y-4 max-w-lg animate-slide-in">

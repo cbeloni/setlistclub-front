@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import AutoScrollControls from "../components/AutoScrollControls";
 import YouTubePlayer from "../components/YouTubePlayer";
-import { fetchChordSheet, updateChordSheetScrollSpeed } from "../services/api";
+import { fetchChordSheet, recordChordSheetView, updateChordSheetScrollSpeed } from "../services/api";
 import { useAuth } from "../components/AuthContext";
 
 const mockChord = {
@@ -58,9 +58,14 @@ export default function ChordSheetPage() {
         );
         setCurrentScrollSpeed(normalized);
         setSavedScrollSpeed(normalized);
+
+        // Registra a visualização no Redis (apenas se autenticado)
+        if (isAuthenticated) {
+          recordChordSheetView(id).catch(() => {});
+        }
       })
       .catch(() => setChordSheet(mockChord));
-  }, [id]);
+  }, [id, isAuthenticated]);
 
   useEffect(() => {
     if (saveTimeoutRef.current) {

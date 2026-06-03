@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import GoogleCallbackPage from "./pages/GoogleCallbackPage";
 import ChordSheetListPage from "./pages/ChordSheetListPage";
 import ChordSheetFormPage from "./pages/ChordSheetFormPage";
+import RecentlyViewedPage from "./pages/RecentlyViewedPage";
 import { AuthProvider, useAuth } from "./components/AuthContext";
 
 function MainAppContent() {
@@ -35,6 +36,9 @@ function MainAppContent() {
               <Link className="btn-ghost" to="/">Home</Link>
               <Link className="btn-ghost" to="/setlists">Setlists</Link>
               <Link className="btn-ghost" to="/cifras">Cifras</Link>
+              {isAuthenticated && (
+                <Link className="btn-ghost" to="/recentes">Recentes</Link>
+              )}
             </nav>
 
             <button
@@ -78,6 +82,9 @@ function MainAppContent() {
               <Link to="/" className="btn-ghost justify-start" onClick={closeMobileMenu}>Home</Link>
               <Link to="/setlists" className="btn-ghost justify-start" onClick={closeMobileMenu}>Setlists</Link>
               <Link to="/cifras" className="btn-ghost justify-start" onClick={closeMobileMenu}>Cifras</Link>
+              {isAuthenticated && (
+                <Link to="/recentes" className="btn-ghost justify-start" onClick={closeMobileMenu}>Recentes</Link>
+              )}
               {isAuthenticated ? (
                 <>
                   <Link to="/cifras/nova" className="btn-outline justify-center text-xs px-4 py-2" onClick={closeMobileMenu}>+ Cifra</Link>
@@ -110,6 +117,7 @@ function MainAppContent() {
           <Route path="/cifras/nova" element={<ChordSheetFormPage />} />
           <Route path="/cifras/:id" element={<ChordSheetPage />} />
           <Route path="/cifras/:id/editar" element={<ChordSheetFormPage />} />
+          <Route path="/recentes" element={<RecentlyViewedPage />} />
           <Route path="/setlists/:id/edit" element={<SetlistBuilderPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

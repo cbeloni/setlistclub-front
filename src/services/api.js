@@ -252,3 +252,12 @@ export async function updateChordSheetScrollSpeed(id, scrollSpeed) {
 export async function deleteChordSheet(id) {
   await api.delete(`/chord-sheets/${id}`);
 }
+
+export async function recordChordSheetView(id) {
+  await api.post(`/chord-sheets/${id}/view`);
+}
+
+export async function fetchRecentlyViewedChordSheets() {
+  const { data } = await api.get("/chord-sheets/recently-viewed");
+  return data;
+}
