@@ -80,7 +80,7 @@ export default function HomePage({ mode = "home" }) {
     }
 
     try {
-      const data = await createSetlist(newName, newDescription);
+      const data = await createSetlist(newName, newDescription, false);
       setSetlists((prev) => [data, ...prev]);
       setNewName("");
       setNewDescription("");

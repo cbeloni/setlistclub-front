@@ -165,10 +165,21 @@ export async function fetchSetlist(id) {
   return data;
 }
 
-export async function createSetlist(name, description) {
+export async function fetchSetlistByToken(shareToken) {
+  const { data } = await api.get(`/setlists/share/${shareToken}`);
+  return data;
+}
+
+export async function fetchChordSheetByToken(shareToken) {
+  const { data } = await api.get(`/chord-sheets/share/${shareToken}`);
+  return data;
+}
+
+export async function createSetlist(name, description, isPrivate = false) {
   const { data } = await api.post("/setlists", {
     name,
-    description
+    description,
+    is_private: isPrivate
   });
   return data;
 }
@@ -210,14 +221,15 @@ export async function fetchChordSheet(id) {
   return data;
 }
 
-export async function createChordSheet(title, artist, keySignature, content, youtubeUrl, scrollSpeed = 1) {
+export async function createChordSheet(title, artist, keySignature, content, youtubeUrl, scrollSpeed = 1, isPrivate = false) {
   const { data } = await api.post("/chord-sheets", {
     title,
     artist,
     key_signature: keySignature || null,
     content,
     youtube_url: youtubeUrl || null,
-    scroll_speed: scrollSpeed
+    scroll_speed: scrollSpeed,
+    is_private: isPrivate
   });
   return data;
 }
@@ -229,7 +241,8 @@ export async function updateChordSheet(
   keySignature,
   content,
   youtubeUrl,
-  scrollSpeed = 1
+  scrollSpeed = 1,
+  isPrivate = false
 ) {
   const { data } = await api.put(`/chord-sheets/${id}`, {
     title,
@@ -237,7 +250,8 @@ export async function updateChordSheet(
     key_signature: keySignature || null,
     content,
     youtube_url: youtubeUrl || null,
-    scroll_speed: scrollSpeed
+    scroll_speed: scrollSpeed,
+    is_private: isPrivate
   });
   return data;
 }
@@ -269,4 +283,51 @@ export async function fetchTabVisibility(id) {
 
 export async function setTabVisibility(id, tabHidden) {
   await api.put(`/chord-sheets/${id}/tab-visibility`, { tab_hidden: tabHidden });
+}
+
+/* ==========================================
+   SHARING ENDPOINTS
+   ========================================== */
+
+export async function searchUsers(query) {
+  const { data } = await api.get("/auth/users/search", { params: { q: query } });
+  return data;
+}
+
+export async function shareChordSheet(id, email) {
+  const { data } = await api.post(`/chord-sheets/${id}/share`, { email });
+  return data;
+}
+
+export async function unshareChordSheet(id, userId) {
+  await api.delete(`/chord-sheets/${id}/share/${userId}`);
+}
+
+export async function fetchChordSheetSharedUsers(id) {
+  const { data } = await api.get(`/chord-sheets/${id}/shared-users`);
+  return data;
+}
+
+export async function fetchSharedChordSheets() {
+  const { data } = await api.get("/chord-sheets/shared-with-me");
+  return data;
+}
+
+export async function shareSetlist(id, email) {
+  const { data } = await api.post(`/setlists/${id}/share`, { email });
+  return data;
+}
+
+export async function unshareSetlist(id, userId) {
+  await api.delete(`/setlists/${id}/share/${userId}`);
+}
+
+export async function fetchSetlistSharedUsers(id) {
+  const { data } = await api.get(`/setlists/${id}/shared-users`);
+  return data;
+}
+
+export async function fetchSharedSetlists() {
+  const { data } = await api.get("/setlists/shared-with-me");
+  return data;
 }

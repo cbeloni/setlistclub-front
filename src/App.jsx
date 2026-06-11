@@ -9,6 +9,8 @@ import GoogleCallbackPage from "./pages/GoogleCallbackPage";
 import ChordSheetListPage from "./pages/ChordSheetListPage";
 import ChordSheetFormPage from "./pages/ChordSheetFormPage";
 import RecentlyViewedPage from "./pages/RecentlyViewedPage";
+import SharedChordSheetPage from "./pages/SharedChordSheetPage";
+import SharedSetlistPage from "./pages/SharedSetlistPage";
 import { AuthProvider, useAuth } from "./components/AuthContext";
 
 function MainAppContent() {
@@ -120,6 +122,8 @@ function MainAppContent() {
           <Route path="/cifras/:id" element={<ChordSheetPage />} />
           <Route path="/cifras/:id/editar" element={<ChordSheetFormPage />} />
           <Route path="/recentes" element={<RecentlyViewedPage />} />
+          <Route path="/c/:shareToken" element={<SharedChordSheetPage />} />
+          <Route path="/s/:shareToken" element={<SharedSetlistPage />} />
           <Route path="/setlists/:id/edit" element={<SetlistBuilderPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

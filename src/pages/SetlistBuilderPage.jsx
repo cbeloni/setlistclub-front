@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import SetlistEditor from "../components/SetlistEditor";
+import ShareModal from "../components/ShareModal";
 import { useAuth } from "../components/AuthContext";
 import {
   fetchSetlist,
+  fetchSetlistSharedUsers,
   reorderSetlist,
+  shareSetlist,
+  unshareSetlist,
   addSongToSetlist,
   removeSongFromSetlist,
   fetchChordSheets
@@ -19,6 +23,7 @@ export default function SetlistBuilderPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null); // null | "saving" | "success" | "error" | "added" | "deleted"
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const isOwner = isAuthenticated && user && setlist && setlist.created_by_id === user.id;
 
@@ -122,8 +127,27 @@ export default function SetlistBuilderPage() {
           ) : (
             <span className="badge bg-slate-50 text-slate-600 border-slate-100">👁️ Modo Leitura</span>
           )}
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setShareModalOpen(true)}
+              className="btn-outline text-xs px-3 py-1.5"
+            >
+              🔗 Compartilhar
+            </button>
+          )}
         </div>
       </header>
+
+      {/* ── Share Modal ── */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        onShare={shareSetlist}
+        onUnshare={unshareSetlist}
+        fetchSharedUsers={fetchSetlistSharedUsers}
+        resourceId={Number(id)}
+      />
 
       {/* ── Toast status ── */}
       {status && (

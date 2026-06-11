@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import AutoScrollControls from "../components/AutoScrollControls";
+import ShareModal from "../components/ShareModal";
 import YouTubePlayer from "../components/YouTubePlayer";
 import {
   fetchChordSheet,
+  fetchChordSheetSharedUsers,
   fetchTabVisibility,
   recordChordSheetView,
   setTabVisibility,
+  shareChordSheet,
+  unshareChordSheet,
   updateChordSheetScrollSpeed,
 } from "../services/api";
 import { useAuth } from "../components/AuthContext";
@@ -58,6 +62,7 @@ export default function ChordSheetPage() {
   const [currentScrollSpeed, setCurrentScrollSpeed] = useState(1);
   const [savedScrollSpeed, setSavedScrollSpeed] = useState(1);
   const [tabHidden, setTabHidden] = useState(true);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const saveTimeoutRef = useRef(null);
   const lastScheduledSpeedRef = useRef(1);
 
@@ -76,10 +81,11 @@ export default function ChordSheetPage() {
         setCurrentScrollSpeed(normalized);
         setSavedScrollSpeed(normalized);
 
-        // Registra a visualização
-        if (isAuthenticated) {
-          recordChordSheetView(id).catch(() => {});
-        }
+        recordChordSheetView(id)
+          .then(() => {
+            setChordSheet((prev) => ({ ...prev, view_count: Number(prev?.view_count || 0) + 1 }));
+          })
+          .catch(() => {});
 
         // Carrega preferência de tablatura do Redis
         if (isAuthenticated) {
@@ -199,6 +205,15 @@ export default function ChordSheetPage() {
                   ✏️ Editar Cifra
                 </Link>
               )}
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={() => setShareModalOpen(true)}
+                  className="btn-outline text-xs px-3 py-1.5"
+                >
+                  🔗 Compartilhar
+                </button>
+              )}
               {sheetHasTab && (
                 <button
                   type="button"
@@ -233,6 +248,16 @@ export default function ChordSheetPage() {
         )}
       </header>
 
+      {/* ── Share Modal ── */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        onShare={shareChordSheet}
+        onUnshare={unshareChordSheet}
+        fetchSharedUsers={fetchChordSheetSharedUsers}
+        resourceId={Number(id)}
+      />
+
       {/* ── Controls ── */}
       <div>
         <AutoScrollControls initialSpeed={currentScrollSpeed} onSpeedChange={setCurrentScrollSpeed} />
@@ -246,6 +271,10 @@ export default function ChordSheetPage() {
         <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-sm leading-8 text-slate-800">
           {renderContent(chordSheet.content)}
         </pre>
+        <div className="mt-5 border-t border-slate-100 pt-4 text-xs text-slate-500">
+          <span className="font-semibold text-slate-700">Criado por:</span>{" "}
+          {chordSheet.created_by_name || "Usuário"} · {Number(chordSheet.view_count || 0)} visualizações
+        </div>
         {(hasPreviousSong || hasNextSong) && (
           <div className="mt-6 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
             {hasPreviousSong && previousSongHref && (

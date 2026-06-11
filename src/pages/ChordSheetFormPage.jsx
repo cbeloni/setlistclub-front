@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../components/AuthContext";
 import { createChordSheet, fetchChordSheet, updateChordSheet } from "../services/api";
 
 export default function ChordSheetFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const isEditMode = !!id;
 
   const [title, setTitle] = useState("");
@@ -12,9 +14,13 @@ export default function ChordSheetFormPage() {
   const [keySignature, setKeySignature] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [content, setContent] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [createdById, setCreatedById] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [fetching, setFetching] = useState(false);
+
+  const canEditPrivacy = !isEditMode || (isAuthenticated && user?.id === createdById);
 
   useEffect(() => {
     if (isEditMode) {
@@ -31,6 +37,8 @@ export default function ChordSheetFormPage() {
       setKeySignature(data.key_signature || "");
       setYoutubeUrl(data.youtube_url || "");
       setContent(data.content);
+      setIsPrivate(Boolean(data.is_private));
+      setCreatedById(data.created_by_id);
     } catch (err) {
       setError("Erro ao carregar a cifra para edição.");
     } finally {
@@ -52,10 +60,10 @@ export default function ChordSheetFormPage() {
 
     try {
       if (isEditMode) {
-        await updateChordSheet(id, title, artist, keySignature, content, youtubeUrl);
+        await updateChordSheet(id, title, artist, keySignature, content, youtubeUrl, 1, isPrivate);
         navigate(`/cifras/${id}`);
       } else {
-        const newSheet = await createChordSheet(title, artist, keySignature, content, youtubeUrl);
+        const newSheet = await createChordSheet(title, artist, keySignature, content, youtubeUrl, 1, isPrivate);
         navigate(`/cifras/${newSheet.id}`);
       }
     } catch (err) {
@@ -171,6 +179,25 @@ export default function ChordSheetFormPage() {
             onChange={(e) => setContent(e.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-white p-4 font-mono text-sm leading-6 text-slate-800 transition-all focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
+        </div>
+
+        {/* Privacidade */}
+        <div className="pt-4 border-t border-slate-200">
+          <label className={`flex items-center gap-3 group ${canEditPrivacy ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}>
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={(e) => canEditPrivacy && setIsPrivate(e.target.checked)}
+              disabled={!canEditPrivacy}
+              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+            <div>
+              <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">Privado</span>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Não aparece na listagem pública. Qualquer pessoa com o link pode visualizar.
+              </p>
+            </div>
+          </label>
         </div>
 
         {/* Footer actions */}
